@@ -64,6 +64,7 @@ int main() {
 	}
 	printf("\nThread3 joined, it returend %s\n", (char*)thread_result);
 	printf("Message is now %s\n", msg);
+	printf("inooooooog");
 	printf("\n\n ---------- Result Grade Matrix ---------- \n\n");
 	i=0;
 	while( i<MAX )

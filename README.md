@@ -2,6 +2,12 @@
 
 ---
 
+Every source codes and files cannot be uploaded here, due to security.
+
+Replaced Link Below
+
+https://seulgi.me
+
 
 ## 인원
 * 조인웅([ryemlv](https://github.com/ryemlv))

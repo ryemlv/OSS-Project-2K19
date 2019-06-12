@@ -5,18 +5,21 @@ include_once(G5_LIB_PATH.'/thumbnail.lib.php');
 // add_stylesheet('css 구문', 출력순서); 숫자가 작을 수록 먼저 출력됨
 add_stylesheet('<link rel="stylesheet" href="'.$board_skin_url.'/style.css">', 0);
 
-if($write['wr_8'] == null){$write['wr_8'] = 37.566400714093284;}
-if($write['wr_9'] == null){$write['wr_9'] = 126.9785391897507;}
+$js_conn=mysqli_connect('seulgi94.mooo.com:3306','ryan','dksqortks1!','gnuwiz');
+$js_sql="SELECT* FROM g5_write_map ORDER BY wr_id ASC;";
+$js_result = mysqli_query($js_conn,$js_sql);
 
 ?>
 <!-- 다음지도 추가 -->
-<div id="map" style="width:80%;height:500px;"></div>
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=bf50763ece062712c586a754b8f391d9&libraries=services,clusterer,drawing"></script>
+<div id="map" style="width:100%;height:350px;"></div>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=bf50763ece062712c586a754b8f391d9"></script>
+
 <script>
+    //https://www.codingfactory.net/11405
 var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
     mapOption = { 
-        center: new daum.maps.LatLng(37.566400714093284, 126.9785391897507), // 지도의 중심좌표
-        level: 6 // 지도의 확대 레벨
+        center: new daum.maps.LatLng(36.799734, 127.075038), // 지도의 중심좌표
+        level: 4 // 지도의 확대 레벨
     };
 
 var map = new daum.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
@@ -31,29 +34,22 @@ map.addControl(mapTypeControl, daum.maps.ControlPosition.TOPRIGHT);
 // 지도 확대 축소를 제어할 수 있는  줌 컨트롤을 생성합니다
 var zoomControl = new daum.maps.ZoomControl();
 map.addControl(zoomControl, daum.maps.ControlPosition.RIGHT);
-</script>
-<script>
 
-<?
-$sql = " select * from {$write_table} order by wr_id asc ";
-$result = sql_query($sql);
-$cnt = 0;
-while ($row = sql_fetch_array($result))
-{ 
-   if($row['wr_8'] && $row['wr_9']) {
-   ?>
-    // 마커를 생성합니다
-    var marker = new daum.maps.Marker({
+<?php
+while($js_row=mysqli_fetch_array($js_result)){
+?>
+var marker = new daum.maps.Marker({
         map: map, // 마커를 표시할 지도
-        position: new daum.maps.LatLng(<?=$row['wr_8']?>, <?=$row['wr_9']?>) // 마커의 위치
+        position: new daum.maps.LatLng(<?php echo($js_row['wr_8']) ?>, <?php echo($js_row['wr_9']) ?>) // 마커의 위치
     });
 
-    // 마커에 표시할 인포윈도우를 생성합니다 
-    var infowindow = new daum.maps.InfoWindow({
-        content: '  <?=$row['wr_subject']?>' // 인포윈도우에 표시할 내용
-    });
-
-    // 마커에 mouseover 이벤트와 mouseout 이벤트를 등록합니다
+    var infowindow = new daum.maps.InfoWindow({ //인웅이가 ^^ 
+		content:'<p style="margin:5px 0 5px 12px;  font-size:12px"><?=$js_row['wr_subject']?></p>'
+		});  
+		
+        marker.setMap(map);
+     
+   // 마커에 mouseover 이벤트와 mouseout 이벤트를 등록합니다
     // 이벤트 리스너로는 클로저를 만들어 등록합니다 
     // for문에서 클로저를 만들어 주지 않으면 마지막 마커에만 이벤트가 등록됩니다
     daum.maps.event.addListener(marker, 'mouseover', makeOverListener(map, marker, infowindow));
@@ -62,14 +58,8 @@ while ($row = sql_fetch_array($result))
     // 마커에 click 이벤트를 등록합니다
     daum.maps.event.addListener(marker, 'click', function() {
 
-        location.href = "./board.php?bo_table=s31&wr_id="+<?=$row['wr_id']?>;
+        location.href = "./board.php?bo_table=Map&wr_id="+<?=$js_row['wr_id']?>;
     });
-<?
-   $cnt++;
-}
-}
-
-?>
 
 // 인포윈도우를 표시하는 클로저를 만드는 함수입니다 
 function makeOverListener(map, marker, infowindow) {
@@ -85,7 +75,12 @@ function makeOutListener(infowindow) {
     };
 }
 
+<?php
+}
+?>
 </script>
+
+
 <!-- //다음지도 추가 -->      
 
 <!-- 게시판 검색 시작 { -->
@@ -93,44 +88,44 @@ function makeOutListener(infowindow) {
 
 
         <label for="sfl" class="sound_only">검색대상</label>
-   <tr bgcolor="#3155b0">
-      <td style="padding:10px" width="60px">
+	<tr bgcolor="#3155b0">
+		<td style="padding:10px" width="60px">
   <?php if ($is_category) { ?>
  <form name="fcategory" method="get">
  <input type="hidden" name="bo_table" value="<?php echo $bo_table; ?>">
 <select name="sca" onchange="this.form.submit();" style="padding:9px;border:0px">
-   <option value=''>지역선택</option>
+	<option value=''>지역선택</option>
      <?php echo get_category_option($bo_table, $sca); // SELECT OPTION 태그로 넘겨받음 ?>
  </select>
  </form>
  <?php } ?>
-      </td>
+		</td>
         <form name="fsearch" method="get">
         <input type="hidden" name="bo_table" value="<?php echo $bo_table ?>">
         <input type="hidden" name="sca" value="<?php echo $sca ?>">
         <input type="hidden" name="sop" value="and">
-      <td height="40px" style="padding:10px" width="130px">
-      <select name="sfl" id="sfl" style="padding:9px;border:0px">
-            <option value="wr_subject"<?php echo get_selected($sfl, 'wr_subject', true); ?>>매장명</option>
-            <option value="wr_content"<?php echo get_selected($sfl, 'wr_content'); ?>>매장설명</option>
+		<td height="40px" style="padding:10px" width="130px">
+		<select name="sfl" id="sfl" style="padding:9px;border:0px">
+            <option value="wr_subject"<?php echo get_selected($sfl, 'wr_subject', true); ?>>원룸이름</option>
+            <option value="wr_content"<?php echo get_selected($sfl, 'wr_content'); ?>>원룸정보</option>
             <option value="wr_4"<?php echo get_selected($sfl, 'wr_4'); ?>>주소</option>
-            <option value="wr_subject||wr_content"<?php echo get_selected($sfl, 'wr_subject||wr_content'); ?>>매장명+매장설명</option>
+            <option value="wr_subject||wr_content"<?php echo get_selected($sfl, 'wr_subject||wr_content'); ?>>원룸이름+원룸정보</option>
             <!-- <option value="mb_id,1"<?php echo get_selected($sfl, 'mb_id,1'); ?>>회원아이디</option>
             <option value="mb_id,0"<?php echo get_selected($sfl, 'mb_id,0'); ?>>회원아이디(코)</option> -->
             <option value="wr_name,1"<?php echo get_selected($sfl, 'wr_name,1'); ?>>글쓴이</option>
             <!-- <option value="wr_name,0"<?php echo get_selected($sfl, 'wr_name,0'); ?>>글쓴이(코)</option> -->
         </select>
-      </td>
-      <td>
+		</td>
+		<td>
         <label for="stx" class="sound_only">검색어<strong class="sound_only"> 필수</strong></label>
         <input type="text" name="stx" value="<?php echo stripslashes($stx) ?>" required id="stx" class="sch_input" size="25" maxlength="20" placeholder="검색어를 입력해주세요" style="width:100%;border:0px;padding:10px">
         </td>
-      <td width="95px" align="right" style="padding-right:15px">
-      <button type="submit" value="검색" class="sch_btn" style="padding:10px 20px;border:0px ">검색</button>
+		<td width="95px" align="right" style="padding-right:15px">
+		<button type="submit" value="검색" class="sch_btn" style="padding:10px 20px;border:0px ">검색</button>
         </td>
-      </form>
-      </tr>
-   </table>
+		</form>
+		</tr>
+	</table>
 <!-- } 게시판 검색 끝 -->
 
 <!--타이틀 <nav id="page-nav" class="container-fluid">
@@ -188,22 +183,22 @@ function makeOutListener(infowindow) {
     <?php } ?>
 <br>
 <table cellpadding="0" cellspacing="0" border="0" width="1100px">
-   <tr bgcolor="#f5f5f5" style="font-size:11pt;font-family:Malgun Gothic;">
-      <th height="50px" width="60px" style="border-top:1px solid #ddd;border-bottom:1px solid #ddd">번호</th>
-      <th width="200px" style="border-top:1px solid #ddd;border-bottom:1px solid #ddd">사진</th>
-      <th width="300px" style="border-top:1px solid #ddd;border-bottom:1px solid #ddd">매장명/주소/전화</th>
-      <th style="border-top:1px solid #ddd;border-bottom:1px solid #ddd">매장이야기</th>
-   </tr>
-        <?php for ($i=0; $i<count($list); $i++) {         
+	<tr bgcolor="#f5f5f5" style="font-size:11pt;font-family:Malgun Gothic;">
+		<th height="50px" width="60px" style="border-top:1px solid #ddd;border-bottom:1px solid #ddd">번호</th>
+		<th width="200px" style="border-top:1px solid #ddd;border-bottom:1px solid #ddd">사진</th>
+		<th width="300px" style="border-top:1px solid #ddd;border-bottom:1px solid #ddd">원룸/주소/전화</th>
+		<th style="border-top:1px solid #ddd;border-bottom:1px solid #ddd">원룸정보</th>
+	</tr>
+        <?php for ($i=0; $i<count($list); $i++) {			
             if($i>0 && ($i % $bo_gallery_cols == 0))
                 $style = 'clear:both;';
             else
                 $style = '';
             if ($i == 0) $k = 0;
             $k += 1;
-            if ($k % $bo_gallery_cols == 0) $style .= "margin:0 !important;";         
+            if ($k % $bo_gallery_cols == 0) $style .= "margin:0 !important;";			
          ?>
-   <tr>
+	<tr>
         <td align="center" style="border-bottom:1px solid #ddd">
             <?php if ($is_checkbox) { ?>
             <label for="chk_wr_id_<?php echo $i ?>" class="sound_only"><?php echo $list[$i]['subject'] ?></label>
@@ -218,14 +213,14 @@ function makeOutListener(infowindow) {
                 else
                     echo $list[$i]['num'];
              ?>
-      </td>
+		</td>
          <td style="padding:10px;border-bottom:1px solid #ddd">
-            <a href="<?php echo $list[$i]['href'] ?>">
+				<a href="<?php echo $list[$i]['href'] ?>">
                     <?php
                     if ($list[$i]['is_notice']) { // 공지사항  ?>
                         <strong style="width:<?php echo $board['bo_gallery_width'] ?>px;height:<?php echo $board['bo_gallery_height'] ?>px">공지</strong>
                     <?php } else {
-                   $thumb = get_list_thumbnail($board['bo_table'], $list[$i]['wr_id'], $board['bo_gallery_width'], $board['bo_gallery_height']);
+					    $thumb = get_list_thumbnail($board['bo_table'], $list[$i]['wr_id'], $board['bo_gallery_width'], $board['bo_gallery_height']);
 
                         if($thumb['src']) {
                             $img_content = '<img src="'.$thumb['src'].'" alt="'.$thumb['alt'].'" width="'.$board['bo_gallery_width'].'" height="'.$board['bo_gallery_height'].'" id="mainImg'.$i.'" class=mine>';
@@ -273,12 +268,12 @@ function makeOutListener(infowindow) {
                     //if (isset($list[$i]['icon_link'])) echo $list[$i]['icon_link'];
                     //if (isset($list[$i]['icon_secret'])) echo $list[$i]['icon_secret'];
                      ?>
-                <br><span style="font-size:10pt;">주소</span>: <?php echo $list[$i]['wr_4']?><br><span style="font-size:10pt;">전화번호</span>: <?php echo $list[$i]['wr_5']?>
+					 <br><span style="font-size:10pt;">주소</span>: <?php echo $list[$i]['wr_4']?><br><span style="font-size:10pt;">전화번호</span>: <?php echo $list[$i]['wr_5']?>
                 </td>
-            <td style="border-bottom:1px solid #ddd;font-size:10pt;"><?php echo $list[$i]['wr_content']?></td>
+				<td style="border-bottom:1px solid #ddd;font-size:10pt;"><?php echo $list[$i]['wr_content']?></td>
                </tr>
         <?php } ?>
-   </table><br>
+	</table><br>
     <?php if ($list_href || $is_checkbox || $write_href) { ?>
     <div class="bo_fx">
         <?php if ($is_checkbox) { ?>
@@ -311,82 +306,4 @@ function makeOutListener(infowindow) {
 
 <!-- 게시물 검색 시작 { -->
 
-<!-- } 게시물 검색 끝 -->
-
-<?php if ($is_checkbox) { ?>
-<script>
-
-function all_checked(sw) {
-    var f = document.fboardlist;
-
-    for (var i=0; i<f.length; i++) {
-        if (f.elements[i].name == "chk_wr_id[]")
-            f.elements[i].checked = sw;
-    }
-}
-
-function fboardlist_submit(f) {
-    var chk_count = 0;
-
-    for (var i=0; i<f.length; i++) {
-        if (f.elements[i].name == "chk_wr_id[]" && f.elements[i].checked)
-            chk_count++;
-    }
-
-    if (!chk_count) {
-        alert(document.pressed + "할 게시물을 하나 이상 선택하세요.");
-        return false;
-    }
-
-    if(document.pressed == "선택복사") {
-        select_copy("copy");
-        return;
-    }
-
-    if(document.pressed == "선택이동") {
-        select_copy("move");
-        return;
-    }
-
-    if(document.pressed == "선택삭제") {
-        if (!confirm("선택한 게시물을 정말 삭제하시겠습니까?\n\n한번 삭제한 자료는 복구할 수 없습니다\n\n답변글이 있는 게시글을 선택하신 경우\n답변글도 선택하셔야 게시글이 삭제됩니다."))
-            return false;
-
-        f.removeAttribute("target");
-        f.action = "./board_list_update.php";
-    }
-
-    return true;
-}
-
-// 선택한 게시물 복사 및 이동
-function select_copy(sw) {
-    var f = document.fboardlist;
-
-    if (sw == 'copy')
-        str = "복사";
-    else
-        str = "이동";
-
-    var sub_win = window.open("", "move", "left=50, top=50, width=500, height=550, scrollbars=1");
-
-    f.sw.value = sw;
-    f.target = "move";
-    f.action = "./move.php";
-    f.submit();
-}
-
-
-
-</script>
-<?php } ?>
-<script>
-$(function(){
-   $("#imgList li>img").hover(function(){
-      $("#mainImg"+$(this).attr('id')).attr('src', $(this).attr('src'));
-   });
-});
-</script>
-<!-- } 게시판 목록 끝 -->
-
-
+<!-- } 게시
